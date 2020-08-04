@@ -3,6 +3,7 @@ import { center, hereCredentials } from './config.js';
 import { isolineMaxRange, requestIsolineShape } from './here.js';
 import HourFilter from './HourFilter.js';
 import MapRotation from './MapRotation.js';
+import Search from './Search.js';
 
 //Height calculations
 const height = $('#content-group-1').clientHeight || $('#content-group-1').offsetHeight;
@@ -70,9 +71,6 @@ const geocoder = platform.getGeocodingService();
 
 window.addEventListener('resize', () => map.getViewPort().resize());
 
-export { router, geocoder }
-
-
 let polygon;
 const marker = new H.map.Marker(center, {volatility: true});
 marker.draggable = true;
@@ -96,6 +94,8 @@ map.addEventListener('drag', evt => {
 }, false);
 
 
+new Search('Melbourne, AUS');
+export { calculateIsoline, marker, router, geocoder }
 
 
 //Initialize the HourFilter
@@ -182,3 +182,4 @@ function calculateView() {
       rotation.start();
    }
 }
+
