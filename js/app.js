@@ -161,7 +161,7 @@ async function calculateIsoline() {
       // The central point of the circle
       {lat: marker.getGeometry().lat , lng: marker.getGeometry().lng},
       // The radius of the circle in meters
-      5000,
+      $('#range').value,
       {
         style: {
           strokeColor: 'rgba(0, 0, 250, 0.5)', // Color of the perimeter
