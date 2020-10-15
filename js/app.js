@@ -72,6 +72,7 @@ const geocoder = platform.getGeocodingService();
 window.addEventListener('resize', () => map.getViewPort().resize());
 
 let polygon;
+let circleB;
 const marker = new H.map.Marker(center, {volatility: true});
 marker.draggable = true;
 map.addObject(marker);
@@ -142,6 +143,10 @@ async function calculateIsoline() {
       map.removeObject(polygon);
    }
 
+   if (circleB !== undefined) {
+      map.removeObject(circleB);
+   }
+
    polygon = new H.map.Polygon(linestring, {
       style: {
          fillColor: 'rgba(74, 134, 255, 0.3)',
@@ -149,7 +154,23 @@ async function calculateIsoline() {
          lineWidth: 2
       }
    });
+
+   // circle
+
+   circleB = new H.map.Circle(
+      // The central point of the circle
+      {lat: marker.getGeometry().lat , lng: marker.getGeometry().lng},
+      // The radius of the circle in meters
+      5000,
+      {
+        style: {
+          strokeColor: 'rgba(0, 0, 250, 0.5)', // Color of the perimeter
+          lineWidth: 5,
+          fillColor: 'rgba(255, 0, 0, 0)'  // Color of the circle
+        }
+      });
    map.addObject(polygon);
+   map.addObject(circleB);
 
    //Enable bar graph for car and time options
    if (options.mode === 'car' && options.rangeType === 'time') 
