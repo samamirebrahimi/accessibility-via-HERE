@@ -96,7 +96,7 @@ map.addEventListener('drag', evt => {
 
 
 new Search('Melbourne, AUS');
-export { calculateIsoline, marker, router, geocoder }
+export { calculateIsoline, marker, router, geocoder, download_home, download_5km_radius }
 
 
 //Initialize the HourFilter
@@ -169,8 +169,12 @@ async function calculateIsoline() {
           fillColor: 'rgba(255, 0, 0, 0)'  // Color of the circle
         }
       });
-   map.addObject(polygon);
+   map.addObject(polygon);   
    map.addObject(circleB);
+   //console.log(JSON.stringify(circleB.toGeoJSON()));
+
+   document.getElementById("download_home").onclick = download_home;
+   document.getElementById("download_radius").onclick = download_5km_radius;
 
    //Enable bar graph for car and time options
    if (options.mode === 'car' && options.rangeType === 'time') 
@@ -204,3 +208,23 @@ function calculateView() {
    }
 }
 
+function download(filename, text) {
+   var element = document.createElement('a');
+   element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+   element.setAttribute('download', filename);
+ 
+   element.style.display = 'none';
+   document.body.appendChild(element);
+ 
+   element.click();
+ 
+   document.body.removeChild(element);
+ };
+
+function download_5km_radius(){
+   download("my-5km-radius.geojson", JSON.stringify(circleB.toGeoJSON()));
+}
+
+function download_home(){
+   download("my-location.geojson", JSON.stringify(marker.getGeometry().toGeoJSON()));
+}
