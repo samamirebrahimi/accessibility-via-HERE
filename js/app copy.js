@@ -53,6 +53,7 @@ function tabifyThemes(evt) {
 }
 
 
+let isolineMode = true;
 
 // Initialize HERE Map
 const platform = new H.service.Platform({ apikey: hereCredentials.apikey });
@@ -72,12 +73,15 @@ const geocoder = platform.getGeocodingService();
 window.addEventListener('resize', () => map.getViewPort().resize());
 
 let polygon;
+let polygon2;
+let circleA;
 let circleB;
-let CircleB_with_props;
-let marker_with_props;
 const marker = new H.map.Marker(center, {volatility: true});
+const marker2 = new H.map.Marker(center, {volatility: true});
 marker.draggable = true;
+marker2.draggable = true;
 map.addObject(marker);
+map.addObject(marker2);
 
 // Add event listeners for marker movement
 map.addEventListener('dragstart', evt => {
@@ -86,7 +90,10 @@ map.addEventListener('dragstart', evt => {
 map.addEventListener('dragend', evt => {
    if (evt.target instanceof H.map.Marker) {
       behavior.enable();
-      calculateIsoline(); 
+      console.log(evt.target);
+      if (isolineMode) {
+         calculateIsoline(evt.target); 
+      }
    }
 }, false);
 map.addEventListener('drag', evt => {
@@ -103,15 +110,17 @@ export { calculateIsoline, marker, router, geocoder, download_home, download_5km
 
 //Initialize the HourFilter
 const hourFilter = new HourFilter();
-async function calculateIsoline() {
+
+async function calculateIsoline(mrkr) {
     console.log('updating...')
+    console.log(mrkr.getId());
  
     //Configure the options object
     const options = {
        mode: $('#car').checked ? 'car' : $('#pedestrian').checked ? 'pedestrian' : 'truck',
        range: $('#range').value,
        rangeType: $('#distance').checked ? 'distance' : 'time',
-       center: marker.getGeometry(),
+       center: mrkr.getGeometry(),
        date: $('#date-value').value === '' ? toDateInputFormat(new Date()) : $('#date-value').value,
        time: to24HourFormat($('#hour-slider').value)
     }
@@ -133,7 +142,7 @@ async function calculateIsoline() {
     $('#slider-val').innerText = formatRangeLabel(options.range, options.rangeType);
  
     //Center map to isoline
-    map.setCenter(options.center, true);
+   // map.setCenter(options.center, true);
 
 
     const linestring = new H.geo.LineString();
@@ -141,68 +150,99 @@ async function calculateIsoline() {
    const isolineShape = await requestIsolineShape(options);
    isolineShape.forEach(p => linestring.pushLatLngAlt.apply(linestring, p));
 
-   if (polygon !== undefined) {
-      map.removeObject(polygon);
-   }
-
-   if (circleB !== undefined) {
-      map.removeObject(circleB);
-   }
-
-   polygon = new H.map.Polygon(linestring, {
-      style: {
-         fillColor: 'rgba(74, 134, 255, 0.3)',
-         strokeColor: '#4A86FF',
-         lineWidth: 2
+   if (mrkr.getId() == 2)
+   {
+      console.log("operating " + mrkr.getId());
+      if (circleA !== undefined) {
+         map.removeObject(circleA);
       }
-   });
 
-   // circle
+      if (polygon !== undefined) {
+         map.removeObject(polygon);
+      }
 
-   circleB = new H.map.Circle(
-      // The central point of the circle
-      {lat: marker.getGeometry().lat , lng: marker.getGeometry().lng},
-      // The radius of the circle in meters
-      $('#range').value,
-      {
-        style: {
-          strokeColor: 'rgba(0, 0, 250, 0.5)', // Color of the perimeter
-          lineWidth: 5,
-          fillColor: 'rgba(255, 0, 0, 0)'  // Color of the circle
-        }
+      polygon = new H.map.Polygon(linestring, {
+         style: {
+            fillColor: 'rgba(74, 134, 255, 0.3)',
+            strokeColor: '#4A86FF',
+            lineWidth: 2
+         }
       });
-   map.addObject(polygon);   
-   map.addObject(circleB);
+     
+      circleA = new H.map.Circle(
+         // The central point of the circle
+         {lat: mrkr.getGeometry().lat , lng: mrkr.getGeometry().lng},
+         // The radius of the circle in meters
+         $('#range').value,
+         {
+           style: {
+             strokeColor: 'rgba(0, 0, 250, 0.5)', // Color of the perimeter
+             lineWidth: 5,
+             fillColor: 'rgba(255, 0, 0, 0)'  // Color of the circle
+           }
+         });
 
-   let prop1 = {"id":"1"};
-   let tmp_CircleB_with_props = circleB.toGeoJSON();
-   tmp_CircleB_with_props.properties = prop1;
+         map.addObject(circleA);
+         map.addObject(polygon); 
 
-   let xx = {
-      "type": "FeatureCollection",
-      "features": [
-        
-      ]
-    };
 
-    let yy = {
-      "type": "FeatureCollection",
-      "features": [
-        
-      ]
-    };
 
-    xx.features.push(tmp_CircleB_with_props);
-    CircleB_with_props = xx;
+   }
    
-   let tmp_marker_with_props = marker.toGeoJSON();
-   tmp_marker_with_props.properties = prop1;
-   yy.features.push(tmp_marker_with_props);
-   marker_with_props = yy;
+   if (mrkr.getId() == 3)
+   {
+      console.log("operating " + mrkr.getId());
 
-   console.log(JSON.stringify(CircleB_with_props));   
-   console.log(JSON.stringify(marker_with_props));
+      if (circleB !== undefined) {
+         map.removeObject(circleB);
+      }
 
+     
+      if (polygon2 !== undefined) {
+         console.log(polygon2);
+         map.removeObject(polygon2);
+      }
+
+      polygon2 = new H.map.Polygon(linestring, {
+         style: {
+            fillColor: 'rgba(255, 0, 0, 0.3)',
+            strokeColor: '#ff0000',
+            lineWidth: 2
+         }
+      });
+
+      circleB = new H.map.Circle(
+         // The central point of the circle
+         {lat: mrkr.getGeometry().lat , lng: mrkr.getGeometry().lng},
+         // The radius of the circle in meters
+         $('#range').value,
+         {
+           style: {
+             strokeColor: 'rgba(255, 0, 0, 0.5)', // Color of the perimeter
+             lineWidth: 5,
+             fillColor: 'rgba(255, 0, 0, 0)'  // Color of the circle
+           }
+         });
+
+         map.addObject(circleB);
+         map.addObject(polygon2); 
+
+         let circleGeoJSON = circleB.toGeoJSON();
+         circleGeoJSON.properties = "{ \"id\": \"1\"}";
+
+         //console.log(JSON.stringify(circleGeoJSON));
+         let locationGeoJSON = mrkr.getGeometry().toGeoJSON();
+         locationGeoJSON.properties = "{ \"id\": \"1\"}";
+         console.log(JSON.stringify(locationGeoJSON));
+   
+   }
+
+
+   
+   //console.log(JSON.stringify(circleB.toGeoJSON()));
+
+   
+   
    document.getElementById("download_home").onclick = download_home;
    document.getElementById("download_radius").onclick = download_5km_radius;
 
@@ -222,7 +262,8 @@ async function calculateIsoline() {
     }
  }
 
- calculateIsoline();
+ calculateIsoline(marker);
+ calculateIsoline(marker2);
 
 
 const rotation = new MapRotation(map);
@@ -252,9 +293,9 @@ function download(filename, text) {
  };
 
 function download_5km_radius(){
-   download("my-radius-circle.geojson", JSON.stringify(CircleB_with_props));
+   download("my-5km-radius.geojson", JSON.stringify(circleB.toGeoJSON()));
 }
 
 function download_home(){
-   download("my-location.geojson", JSON.stringify(marker_with_props));
+   download("my-location.geojson", JSON.stringify(marker.getGeometry().toGeoJSON()));
 }
